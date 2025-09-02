@@ -2,8 +2,8 @@ pipeline {
     agent any   // Run on any available Jenkins agent
 
     tools {
-        maven "MAVEN3.9"   // Maven version from Jenkins Global Tool Config
-        jdk "JDK17"        // JDK version from Jenkins Global Tool Config
+        maven "MAVEN3.9"
+        jdk "JDK17"
     }
 
     environment {
@@ -54,6 +54,14 @@ pipeline {
                               -Dsonar.login=$SONAR_TOKEN
                         """
                     }
+                }
+            }
+        }
+
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
