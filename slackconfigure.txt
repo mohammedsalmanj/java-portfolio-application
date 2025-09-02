@@ -1,0 +1,44 @@
+# Slack Notification Integration
+
+This branch demonstrates how to add **Slack notifications** to a Jenkins Pipeline.  
+Slack helps the SRE/DevOps team get instant updates about build and analysis status.
+
+---
+
+## 🔧 Jenkins Setup
+
+1. Install **Slack Notification Plugin** in Jenkins.
+2. Configure **Slack Workspace & Token** in `Manage Jenkins → Configure System → Slack`.
+3. Set **Default Channel** to `#srespace`.
+
+---
+
+## 📜 Pipeline Changes
+
+- Added a **post block** in the Jenkinsfile.  
+- On **success**, Jenkins sends a green notification ✅.  
+- On **failure**, Jenkins sends a red notification ❌.  
+
+```groovy
+post {
+    success {
+        slackSend(
+            channel: '#srespace',
+            color: 'good',   // Green
+            message: """✅ *Build Success*  
+*Job*: ${env.JOB_NAME}  
+*Build*: #${env.BUILD_NUMBER}  
+*Artifact*: portfolio-extended-1.0.0.war"""
+        )
+    }
+    failure {
+        slackSend(
+            channel: '#srespace',
+            color: 'danger',  // Red
+            message: """❌ *Build Failed*  
+*Job*: ${env.JOB_NAME}  
+*Build*: #${env.BUILD_NUMBER}  
+Check Jenkins logs for details."""
+        )
+    }
+}
