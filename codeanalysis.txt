@@ -1,0 +1,32 @@
+Code Analysis (Checkstyle)
+
+This branch demonstrates how to add Checkstyle static analysis to a Jenkins Pipeline.
+Checkstyle ensures that Java code follows coding standards and best practices.
+
+🔧 Jenkins Setup
+
+Install the Checkstyle plugin (optional for reporting).
+
+No extra Jenkins global config needed — runs via Maven.
+
+📜 Pipeline Changes
+
+Added a Checkstyle stage to the pipeline.
+
+Runs mvn checkstyle:checkstyle.
+
+Publishes HTML report (checkstyle.html) for developers.
+
+stage("Checkstyle") {
+    steps {
+        sh "mvn checkstyle:checkstyle"
+        publishHTML(target: [
+            allowMissing: true,
+            alwaysLinkToLastBuild: true,
+            keepAll: true,
+            reportDir: 'target/site',
+            reportFiles: 'checkstyle.html',
+            reportName: 'Checkstyle Report'
+        ])
+    }
+}

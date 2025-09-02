@@ -1,0 +1,48 @@
+Nexus Artifact Upload
+
+This branch adds Nexus artifact upload to Jenkins Pipeline.
+After building the WAR file, it is uploaded to Nexus Repository for versioned storage.
+
+🔧 Jenkins Setup
+
+Install Nexus Artifact Uploader Plugin in Jenkins.
+
+Configure Nexus server URL (172.31.17.0:8081).
+
+Create Nexus repository (portfolio-app-repo).
+
+Add Jenkins credentials (nexuslogin) for Nexus.
+
+📜 Pipeline Changes
+
+Added Upload to Nexus stage.
+
+Publishes WAR file as version 1.0.${BUILD_NUMBER}.
+
+Stores artifact in portfolio-app-repo.
+
+stage("Upload to Nexus") {
+    steps {
+        script {
+            nexusArtifactUploader(
+                nexusVersion: 'nexus3',
+                protocol: 'http',
+                nexusUrl: '172.31.17.0:8081',
+                groupId: 'com.example',
+                version: "1.0.${env.BUILD_NUMBER}",
+                repository: 'portfolio-app-repo',
+                credentialsId: 'nexuslogin',
+                artifacts: [
+                    [artifactId: 'portfolio-extended',
+                     classifier: '',
+                     file: "target/portfolio-extended-1.0.0.war",
+                     type: 'war']
+                ]
+            )
+        }
+    }
+}
+
+
+✅ WAR file automatically uploaded to Nexus after build.
+📦 Available for deployment or distribution.

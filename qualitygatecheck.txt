@@ -1,0 +1,52 @@
+SonarQube Analysis + Quality Gate
+
+This branch integrates SonarQube with Jenkins for advanced static analysis and Quality Gates.
+SonarQube checks code quality, bugs, vulnerabilities, coverage, and duplication.
+
+🔧 Jenkins Setup
+
+Install SonarQube Scanner Plugin in Jenkins.
+
+Configure SonarQube server in Manage Jenkins → Configure System (name: sonarqubeserver).
+
+Add SonarQube Token in Jenkins Credentials (sonartoken).
+
+Add SonarQube Scanner Tool (sonar6.2) under Global Tool Configuration.
+
+📜 Pipeline Changes
+
+Added SonarQube Analysis stage.
+
+Runs sonar-scanner with project details.
+
+Uses token authentication (sonartoken).
+
+Added Quality Gate stage to fail pipeline if Sonar rules are not met.
+
+stage("SonarQube Analysis") {
+    steps {
+        withSonarQubeEnv("sonarqubeserver") {
+            withCredentials([string(credentialsId: 'sonartoken', variable: 'SONAR_TOKEN')]) {
+                sh """
+                    ${SCANNER_HOME}/bin/sonar-scanner \
+                      -Dsonar.projectKey=java-portfolio \
+                      -Dsonar.projectName="Java Portfolio Application" \
+                      -Dsonar.projectVersion=1.0 \
+                      -Dsonar.sources=src \
+                      -Dsonar.java.binaries=target/classes \
+                      -Dsonar.junit.reportsPath=target/surefire-reports \
+                      -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
+                      -Dsonar.login=$SONAR_TOKEN
+                """
+            }
+        }
+    }
+}
+
+stage("Quality Gate") {
+    steps {
+        timeout(time: 5, unit: 'MINUTES') {
+            waitForQualityGate abortPipeline: true
+        }
+    }
+}
