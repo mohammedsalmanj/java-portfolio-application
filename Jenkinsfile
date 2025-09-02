@@ -1,5 +1,5 @@
 pipeline {
-    agent any   // Run on any available Jenkins agent
+    agent any
 
     tools {
         maven "MAVEN3.9"
@@ -7,8 +7,8 @@ pipeline {
     }
 
     environment {
-        SONARQUBE_ENV = 'sonarqubeserver'   // SonarQube server name from Jenkins config
-        SCANNER_HOME  = tool 'sonar6.2'     // SonarQube Scanner tool from Jenkins tool config
+        SONARQUBE_ENV = 'sonarqubeserver'
+        SCANNER_HOME  = tool 'sonar6.2'
     }
 
     stages {
@@ -71,11 +71,6 @@ pipeline {
                 sh "mvn clean install"
                 archiveArtifacts artifacts: 'target/*.war', allowEmptyArchive: true, fingerprint: true
             }
-            post {
-                success {
-                    echo "✅ Build Success — WAR file created!"
-                }
-            }
         }
 
         stage("Upload to Nexus") {
@@ -84,11 +79,11 @@ pipeline {
                     nexusArtifactUploader(
                         nexusVersion: 'nexus3',
                         protocol: 'http',
-                        nexusUrl: '172.31.17.0:8081',   // 🔹 Your Nexus IP + port
-                        groupId: 'com.example',         // 🔹 Adjust if needed
-                        version: "1.0.${env.BUILD_NUMBER}", // dynamic version
-                        repository: 'portfolio-app-repo',   // 🔹 Nexus repo name
-                        credentialsId: 'nexuslogin',        // 🔹 Jenkins credentials ID
+                        nexusUrl: '172.31.17.0:8081',
+                        groupId: 'com.example',
+                        version: "1.0.${env.BUILD_NUMBER}",
+                        repository: 'portfolio-app-repo',
+                        credentialsId: 'nexuslogin',
                         artifacts: [
                             [artifactId: 'portfolio-extended',
                              classifier: '',
@@ -98,6 +93,30 @@ pipeline {
                     )
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            slackSend(
+                channel: '#srespace',
+                color: 'good',   // Green
+                message: """✅ *Build Success*  
+*Job*: ${env.JOB_NAME}  
+*Build*: #${env.BUILD_NUMBER}  
+*Artifact*: portfolio-extended-1.0.0.war  
+*Status*: Successfully built & uploaded to Nexus 🎉"""
+            )
+        }
+        failure {
+            slackSend(
+                channel: '#srespace',
+                color: 'danger',  // Red
+                message: """❌ *Build Failed*  
+*Job*: ${env.JOB_NAME}  
+*Build*: #${env.BUILD_NUMBER}  
+*Status*: Please check Jenkins logs 🔎"""
+            )
         }
     }
 }
