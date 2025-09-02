@@ -28,7 +28,7 @@ pipeline {
             steps {
                 sh "mvn checkstyle:checkstyle"
                 publishHTML(target: [
-                    allowMissing: true,                // Don’t fail if report is missing
+                    allowMissing: true,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: 'target/site',
@@ -74,6 +74,28 @@ pipeline {
             post {
                 success {
                     echo "✅ Build Success — WAR file created!"
+                }
+            }
+        }
+
+        stage("Upload to Nexus") {
+            steps {
+                script {
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: '172.31.17.0:8081',   // 🔹 Your Nexus IP + port
+                        groupId: 'com.example',         // 🔹 Adjust if needed
+                        version: "1.0.${env.BUILD_NUMBER}", // dynamic version
+                        repository: 'portfolio-app-repo',   // 🔹 Nexus repo name
+                        credentialsId: 'nexuslogin',        // 🔹 Jenkins credentials ID
+                        artifacts: [
+                            [artifactId: 'portfolio-extended',
+                             classifier: '',
+                             file: "target/portfolio-extended-1.0.0.war",
+                             type: 'war']
+                        ]
+                    )
                 }
             }
         }
